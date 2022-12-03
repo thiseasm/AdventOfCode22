@@ -1,10 +1,10 @@
 ﻿using AdventOfCode.Enums;
+using AdventOfCode.Enums.Day2;
 
 namespace AdventOfCode.Challenges;
 
 public class Day2 : DayBase
 {
-    
     private readonly string[] _inputs;
 
     public Day2()
