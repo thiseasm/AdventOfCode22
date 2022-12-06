@@ -8,21 +8,26 @@ public abstract class DayBase
 
     protected string[] ReadFile(string file)
     {
-        var inputPath = Path.Combine(_directory, file);
+        string inputPath = Path.Combine(_directory, file);
         return File.ReadAllLines(inputPath);
+    }
+    protected string ReadText(string file)
+    {
+        string inputPath = Path.Combine(_directory, file);
+        return File.ReadAllText(inputPath);
     }
     protected int[] ReadIntegerFile(string file)
     {
-        var inputPath = Path.Combine(_directory, file);
-        var inputsRaw = File.ReadAllLines(inputPath);
+        string inputPath = Path.Combine(_directory, file);
+        string[] inputsRaw = File.ReadAllLines(inputPath);
 
         return inputsRaw.Select(input => int.Parse(input.Trim())).ToArray();
     }
 
     protected long[] ReadLongFile(string file)
     {
-        var inputPath = Path.Combine(_directory, file);
-        var inputsRaw = File.ReadAllLines(inputPath);
+        string inputPath = Path.Combine(_directory, file);
+        string[] inputsRaw = File.ReadAllLines(inputPath);
 
         return inputsRaw.Select(input => long.Parse(input.Trim())).ToArray();
     }
@@ -34,16 +39,16 @@ public abstract class DayBase
 
     protected int[] ReadSv(string file, char separator)
     {
-        var inputPath = Path.Combine(_directory, file);
-        var inputRaw = File.ReadAllText(inputPath).Split(separator);
+        string inputPath = Path.Combine(_directory, file);
+        string[] inputRaw = File.ReadAllText(inputPath).Split(separator);
 
         return inputRaw.Select(input => int.Parse(input.Trim())).ToArray();
     }
     
     protected int[] ReadSpaceSeparatedIntegers(string file)
     {
-        var inputPath = Path.Combine(_directory, file);
-        var inputsRaw = File.ReadAllLines(inputPath);
+        string inputPath = Path.Combine(_directory, file);
+        string[] inputsRaw = File.ReadAllLines(inputPath);
 
         return inputsRaw.Select(input => input.Equals(string.Empty) 
             ? -1
