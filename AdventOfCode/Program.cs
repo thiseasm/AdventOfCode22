@@ -2,5 +2,5 @@
 
 using AdventOfCode.Challenges;
 
-DayBase day = new Day6();
+DayBase day = new Day7();
 day.Start();
