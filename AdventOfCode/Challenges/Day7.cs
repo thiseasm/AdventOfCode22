@@ -19,67 +19,7 @@ public class Day7 : DayBase
         DeviceDirectory baseDirectory = new("base_directory");
         List<DeviceDirectory> systemDirectories = new() { baseDirectory };
         List<DeviceFile> files = new();
-        DeviceDirectory workingDirectory = baseDirectory;
-        foreach (string line in _inputs)
-        {
-            if (line.StartsWith("$ cd "))
-            {
-                if (line.EndsWith("/"))
-                {
-                    workingDirectory = baseDirectory;
-                }
-                else if (line.EndsWith(".."))
-                {
-                    workingDirectory = workingDirectory.Parent;
-                }
-                else
-                {
-                    string target = line.Remove(0, 5) + $"-{workingDirectory.Name}";
-                    workingDirectory = systemDirectories.Find(x => x.Name.Equals(target));
-                }
-                
-            }
-            else if (line.StartsWith("dir")) {
-                string name = line.Remove(0, 4) + $"-{workingDirectory.Name}";
-                DeviceDirectory directory;
-                if (systemDirectories.Any(x => x.Name.Equals(name)))
-                {
-                    directory = systemDirectories.Find(x => x.Name.Equals(name));
-                }
-                else
-                {
-                    directory = new DeviceDirectory(workingDirectory, name);
-                    systemDirectories.Add(directory);
-                }
-
-                if (!workingDirectory.Directories.Any(x => x.Name.Equals(directory.Name)))
-                {
-                    workingDirectory.Directories.Add(directory);
-                }
-            }
-            else if (line.Equals("$ ls"))
-            {
-            }
-            else
-            {
-                string[] info = line.Split(' ');
-                DeviceFile file;
-                if (files.Exists(x => x.Name.Equals(info[1]) && x.Size.Equals(long.Parse(info[0]))))
-                {
-                    file = files.Find(x => x.Name.Equals(info[1]) && x.Size.Equals(long.Parse(info[0])));
-                    files.Add(file);
-                }
-                else
-                {
-                    file = new DeviceFile(info[0], info[1]);
-                }
-                
-                if (!workingDirectory.Files.Any(x => x.Name.Equals(file.Name)))
-                {
-                    workingDirectory.Files.Add(file);
-                }
-            }
-        }
+        MapDirectory(baseDirectory, systemDirectories, files);
 
         long totalSize = systemDirectories.Where(d => d.GetSize() <= 100000).Sum(x => x.GetSize());
         Console.WriteLine(totalSize);
@@ -90,71 +30,90 @@ public class Day7 : DayBase
         DeviceDirectory baseDirectory = new("base_directory");
         List<DeviceDirectory> systemDirectories = new() { baseDirectory };
         List<DeviceFile> files = new();
+        MapDirectory(baseDirectory, systemDirectories, files);
+
+        long emptySpace = 70000000 - baseDirectory.GetSize();
+        long minSize = systemDirectories.Where( d => emptySpace + d.GetSize() >= 30000000).Min(x => x.GetSize());
+        Console.WriteLine(minSize);
+    }
+
+    private void MapDirectory(DeviceDirectory baseDirectory, List<DeviceDirectory> systemDirectories, List<DeviceFile> files)
+    {
         DeviceDirectory workingDirectory = baseDirectory;
         foreach (string line in _inputs)
         {
             if (line.StartsWith("$ cd "))
             {
-                if (line.EndsWith("/"))
-                {
-                    workingDirectory = baseDirectory;
-                }
-                else if (line.EndsWith(".."))
-                {
-                    workingDirectory = workingDirectory.Parent;
-                }
-                else
-                {
-                    string target = line.Remove(0, 5) + $"-{workingDirectory.Name}";
-                    workingDirectory = systemDirectories.Find(x => x.Name.Equals(target));
-                }
-                
+                workingDirectory = GetWorkingDirectory(baseDirectory, systemDirectories, line, workingDirectory);
             }
-            else if (line.StartsWith("dir")) {
-                string name = line.Remove(0, 4) + $"-{workingDirectory.Name}";
-                DeviceDirectory directory;
-                if (systemDirectories.Any(x => x.Name.Equals(name)))
-                {
-                    directory = systemDirectories.Find(x => x.Name.Equals(name));
-                }
-                else
-                {
-                    directory = new DeviceDirectory(workingDirectory, name);
-                    systemDirectories.Add(directory);
-                }
-
-                if (!workingDirectory.Directories.Any(x => x.Name.Equals(directory.Name)))
-                {
-                    workingDirectory.Directories.Add(directory);
-                }
+            else if (line.StartsWith("dir"))
+            {
+                ParseDirectory(systemDirectories, line, workingDirectory);
             }
             else if (line.Equals("$ ls"))
             {
             }
             else
             {
-                string[] info = line.Split(' ');
-                DeviceFile file;
-                if (files.Exists(x => x.Name.Equals(info[1]) && x.Size.Equals(long.Parse(info[0]))))
-                {
-                    file = files.Find(x => x.Name.Equals(info[1]) && x.Size.Equals(long.Parse(info[0])));
-                    files.Add(file);
-                }
-                else
-                {
-                    file = new DeviceFile(info[0], info[1]);
-                }
-                
-                if (!workingDirectory.Files.Any(x => x.Name.Equals(file.Name)))
-                {
-                    workingDirectory.Files.Add(file);
-                }
+                ParseFile(files, line, workingDirectory);
             }
         }
+    }
 
-        long emptySpace = 70000000 - baseDirectory.GetSize();
-        long minSize = systemDirectories.Where( d => emptySpace + d.GetSize() >= 30000000).Min(x => x.GetSize());
-        Console.WriteLine(minSize);
+    private static void ParseFile(List<DeviceFile> files, string line, DeviceDirectory workingDirectory)
+    {
+        string[] info = line.Split(' ');
+        DeviceFile file;
+        if (files.Exists(x => x.Name.Equals(info[1]) && x.Size.Equals(long.Parse(info[0]))))
+        {
+            file = files.Find(x => x.Name.Equals(info[1]) && x.Size.Equals(long.Parse(info[0])));
+            files.Add(file);
+        }
+        else
+        {
+            file = new DeviceFile(info[0], info[1]);
+        }
+
+        if (!workingDirectory.Files.Any(x => x.Name.Equals(file.Name)))
+        {
+            workingDirectory.Files.Add(file);
+        }
+    }
+
+    private static void ParseDirectory(List<DeviceDirectory> systemDirectories, string line, DeviceDirectory workingDirectory)
+    {
+        string name = line.Remove(0, 4) + $"-{workingDirectory.Name}";
+        DeviceDirectory directory;
+        if (systemDirectories.Any(x => x.Name.Equals(name)))
+        {
+            directory = systemDirectories.Find(x => x.Name.Equals(name));
+        }
+        else
+        {
+            directory = new DeviceDirectory(workingDirectory, name);
+            systemDirectories.Add(directory);
+        }
+
+        if (!workingDirectory.Directories.Any(x => x.Name.Equals(directory.Name)))
+        {
+            workingDirectory.Directories.Add(directory);
+        }
+    }
+
+    private static DeviceDirectory GetWorkingDirectory(DeviceDirectory baseDirectory, List<DeviceDirectory> systemDirectories, string line,DeviceDirectory workingDirectory )
+    {
+        if (line.EndsWith("/"))
+        {
+            return baseDirectory;
+        }
+
+        if (line.EndsWith(".."))
+        {
+            return workingDirectory.Parent;
+        }
+
+        string target = line.Remove(0, 5) + $"-{workingDirectory.Name}";
+        return systemDirectories.Find(x => x.Name.Equals(target));
     }
 }
 
